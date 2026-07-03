@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  syntax-check:
+    name: Python Syntax & Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - name: Check Python syntax
+        run: |
+          find . -name "*.py" ! -path "./.venv/*" ! -path "./.git/*" \
+            | xargs -I {} python -m py_compile {}
+          echo "All files OK"
+      - name: Scan for hardcoded secrets
+        run: |
+          if grep -rn -e "SECRET_KEY\s*=\s*['\"][^$]" -e "password\s*=\s*['\"][^$]" \
+            --include="*.py" .; then
+            echo "ERROR: Potential hardcoded secret" && exit 1
+          fi
+          echo "Clean"
+      - name: Verify sensitive files are gitignored
+        run: |
+          for f in .env cotiviti_game.sqlite; do
+            if git ls-files --error-unmatch "web/$f" 2>/dev/null; then
+              echo "ERROR: $f is tracked" && exit 1
+            fi
+          done
+          echo "Sensitive files correctly ignored"

@@ -1,0 +1,6 @@
+name,email,specializations,work_start,work_end,tz,max_load
+Alice Johnson,alice.johnson@cotiviti.com,Network;Infrastructure;VPN,8,17,ET,5
+Bob Smith,bob.smith@cotiviti.com,Auth/Identity;Okta;Active Directory,9,18,ET,5
+Carol Martinez,carol.martinez@cotiviti.com,Hardware;Laptop;Peripherals,7,16,ET,5
+David Patel,david.patel@cotiviti.com,Software;Database;Applications,10,19,ET,5
+Emma Wilson,emma.wilson@cotiviti.com,Email/Calendar;Outlook;Exchange,8,17,ET,5

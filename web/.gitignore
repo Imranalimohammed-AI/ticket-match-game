@@ -1,0 +1,4 @@
+.env
+cotiviti_game.sqlite
+__pycache__/
+*.pyc

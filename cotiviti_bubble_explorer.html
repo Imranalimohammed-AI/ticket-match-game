@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotiviti &#8212; Service Portal Bubble Explorer</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:       #F5F3FF;
+  --panel:    #31006F;
+  --shadow:   #1A0040;
+  --purple:   #31006F;
+  --pink:     #EC008C;
+  --teal:     #00AEFF;
+  --p-bright: #9579D3;
+  --k-bright: #F49AC1;
+  --t-bright: #13D0CA;
+  --gold:     #F98E2B;
+  --muted:    #7C77AD;
+  --success:  #13D0CA;
+  --danger:   #CC0055;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  height: 100dvh; min-height: 100vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  -webkit-user-select: none; user-select: none;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.hdr {
+  background: var(--panel);
+  height: 78px; flex-shrink: 0;
+  display: flex; align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 4px 0 var(--shadow);
+  position: relative; z-index: 20;
+}
+.hdr-pink-bar { position: absolute; left:0; top:0; bottom:0; width:7px; background:var(--pink); }
+.logo { display:flex; align-items:baseline; font-size:17px; font-weight:800; letter-spacing:0; line-height:1; margin-left:16px; }
+.logo-C    { color:#fff; }
+.logo-O    { color:var(--p-bright); }
+.logo-T    { color:#fff; }
+.logo-I    { color:var(--pink); }
+.logo-VITI { color:#fff; }
+.hdr-divider { width:3px; height:38px; background:var(--teal); margin:0 16px; flex-shrink:0; }
+.hdr-title { color:#fff; font-size:19px; font-weight:700; white-space:nowrap; }
+.disc-pill { margin-left:auto; background:rgba(255,255,255,.10); color:var(--gold); font-size:13px; font-weight:700; padding:5px 14px; border-radius:20px; white-space:nowrap; }
+
+/* ── Stripe & sub-header ─────────────────────────────────────────────────── */
+.stripe { height:4px; display:flex; flex-shrink:0; }
+.stripe > div { flex:1; }
+.subhdr { background:var(--muted); flex-shrink:0; padding:7px 20px; font-size:12px; font-weight:700; color:#fff; }
+
+/* ── Arena ───────────────────────────────────────────────────────────────── */
+#arena {
+  flex:1; position:relative; overflow:hidden;
+  background: linear-gradient(175deg, #DDD8FF 0%, #E6E2FF 18%, #EDE9FF 42%, #F2F0FF 70%, #F5F3FF 100%);
+}
+
+/* ── Clouds ──────────────────────────────────────────────────────────────── */
+.cloud { position:absolute; pointer-events:none; z-index:1; }
+@keyframes drift-ltr { from { transform:translateX(-520px); } to { transform:translateX(calc(100vw + 520px)); } }
+@keyframes drift-rtl { from { transform:translateX(calc(100vw + 520px)); } to { transform:translateX(-520px); } }
+
+/* ── Bubble ──────────────────────────────────────────────────────────────── */
+.bubble {
+  position:absolute;
+  width:144px; height:144px;
+  border-radius:50%; border:3px solid;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; padding:10px; text-align:center;
+  transition: box-shadow .22s, border-color .22s, opacity .3s;
+  animation: bfloat 3.4s ease-in-out infinite;
+  z-index:10; transform-style:preserve-3d; will-change:transform, left, top;
+}
+/* Specular highlight */
+.bubble::before {
+  content:''; position:absolute; top:12%; left:14%; width:38%; height:26%;
+  background:radial-gradient(ellipse, rgba(255,255,255,.82) 0%, rgba(255,255,255,0) 72%);
+  border-radius:50%; transform:rotate(-22deg); pointer-events:none; z-index:12;
+}
+/* Bottom rim glow */
+.bubble::after {
+  content:''; position:absolute; bottom:11%; left:32%; width:34%; height:11%;
+  background:radial-gradient(ellipse, rgba(255,255,255,.42) 0%, rgba(255,255,255,0) 70%);
+  border-radius:50%; pointer-events:none; z-index:12;
+}
+@keyframes bfloat {
+  0%,100% { transform:translateY(0px)  rotate(0deg);   }
+  30%     { transform:translateY(-7px) rotate(.6deg);  }
+  70%     { transform:translateY(-4px) rotate(-.5deg); }
+}
+@keyframes bubble-pop {
+  0%   { transform:scale(1); }
+  35%  { transform:scale(1.30) rotate(3deg); }
+  65%  { transform:scale(0.93) rotate(-1deg); }
+  100% { transform:scale(1)  rotate(0deg); }
+}
+.bubble.popping  { animation: bubble-pop .38s ease-out !important; }
+.bubble.tilting  { animation: none !important; }
+.bubble.discovered { cursor:default; opacity:.80; animation:none; }
+
+.bubble .b-emoji { font-size:24px; line-height:1.15; margin-bottom:5px; position:relative; z-index:13; }
+.bubble .b-name  { font-size:10px; font-weight:700; line-height:1.38; position:relative; z-index:13; }
+.bubble .b-stamp { display:none; font-size:10.5px; font-weight:800; line-height:1.38; position:relative; z-index:13; }
+.bubble.discovered .b-name  { display:none; }
+.bubble.discovered .b-stamp { display:block; }
+
+/* ── Bubble type styles (3-D sphere look) ────────────────────────────────── */
+.b-incident {
+  background: radial-gradient(circle at 36% 34%, #F6F3FF 0%, #EDE9FF 28%, #D4CCEE 62%, #BDB2E2 100%);
+  border-color:#31006F; color:#31006F;
+  box-shadow: 0 10px 32px rgba(49,0,111,.30), 0 3px 8px rgba(49,0,111,.18),
+              inset -6px -8px 14px rgba(49,0,111,.16), inset 4px 5px 10px rgba(255,255,255,.62);
+}
+.b-incident .b-stamp { color:var(--danger); }
+.b-incident.discovered { border-color:var(--danger); }
+.b-incident:not(.discovered):hover {
+  box-shadow: 0 18px 44px rgba(49,0,111,.42), 0 5px 14px rgba(49,0,111,.25),
+              inset -6px -8px 14px rgba(49,0,111,.18), inset 4px 5px 10px rgba(255,255,255,.70),
+              0 0 22px 6px rgba(149,121,211,.55);
+}
+.b-gsr {
+  background: radial-gradient(circle at 36% 34%, #FFF3F9 0%, #FFE8F5 28%, #F5C8E0 62%, #EAB0D2 100%);
+  border-color:#EC008C; color:#A0004F;
+  box-shadow: 0 10px 32px rgba(236,0,140,.24), 0 3px 8px rgba(236,0,140,.16),
+              inset -6px -8px 14px rgba(200,0,100,.13), inset 4px 5px 10px rgba(255,255,255,.62);
+}
+.b-gsr .b-stamp { color:var(--pink); }
+.b-gsr.discovered { border-color:var(--pink); }
+.b-gsr:not(.discovered):hover {
+  box-shadow: 0 18px 44px rgba(236,0,140,.36), 0 5px 14px rgba(236,0,140,.24),
+              inset -6px -8px 14px rgba(200,0,100,.16), inset 4px 5px 10px rgba(255,255,255,.70),
+              0 0 22px 6px rgba(244,154,193,.60);
+}
+.b-catalog {
+  background: radial-gradient(circle at 36% 34%, #F0FBFF 0%, #E5F5FF 28%, #BCDFF5 62%, #9DCFE8 100%);
+  border-color:#00AEFF; color:#31006F;
+  box-shadow: 0 10px 32px rgba(0,174,255,.22), 0 3px 8px rgba(0,174,255,.15),
+              inset -6px -8px 14px rgba(0,100,190,.12), inset 4px 5px 10px rgba(255,255,255,.62);
+}
+.b-catalog .b-stamp { color:var(--success); }
+.b-catalog.discovered { border-color:var(--success); }
+.b-catalog:not(.discovered):hover {
+  box-shadow: 0 18px 44px rgba(0,174,255,.34), 0 5px 14px rgba(0,174,255,.24),
+              inset -6px -8px 14px rgba(0,100,190,.15), inset 4px 5px 10px rgba(255,255,255,.70),
+              0 0 22px 6px rgba(19,208,202,.55);
+}
+
+/* ── Feedback panel ──────────────────────────────────────────────────────── */
+#feedback {
+  flex-shrink:0; height:120px;
+  background:var(--panel);
+  box-shadow: 0 -4px 0 var(--shadow);
+  padding:10px 22px 8px;
+  display:flex; flex-direction:column; justify-content:center;
+  transition:background .28s; z-index:20;
+}
+#fb-type    { font-size:14px;  font-weight:700; color:var(--gold);  margin-bottom:3px; }
+#fb-quip    { font-size:12px;  font-weight:600; color:#D0C0FF;      margin-bottom:3px; font-style:italic; }
+#fb-detail  { font-size:10.5px; color:#9090C8; line-height:1.50; }
+
+/* ── Completion overlay ──────────────────────────────────────────────────── */
+.ov-wrap {
+  position:fixed; inset:0;
+  background:rgba(26,0,64,.74);
+  display:flex; align-items:center; justify-content:center;
+  z-index:200; animation:ov-in .3s ease-out;
+}
+@keyframes ov-in { from { opacity:0; transform:scale(.94); } to { opacity:1; transform:scale(1); } }
+.ov-card { background:var(--bg); width:620px; max-width:96vw; border-radius:6px; box-shadow:8px 8px 0 var(--shadow), 0 0 40px rgba(49,0,111,.35); overflow:hidden; }
+.ov-banner { background:var(--panel); }
+.ov-stripe { display:flex; height:5px; }
+.ov-stripe > div { flex:1; }
+.ov-title { color:var(--gold); font-size:22px; font-weight:800; text-align:center; padding:16px 20px 4px; }
+.ov-sub   { color:#C8B8FF; font-size:12px; text-align:center; padding:0 20px 14px; font-style:italic; }
+.ov-cards { display:flex; gap:12px; padding:16px 16px 8px; }
+.ov-type-card { flex:1; border-radius:4px; overflow:hidden; box-shadow:3px 3px 0 var(--shadow); }
+.ov-type-card .bar  { height:4px; }
+.ov-type-card .body { padding:10px 12px 14px; text-align:center; }
+.ov-type-card .lbl  { font-size:11px; font-weight:800; margin-bottom:6px; }
+.ov-type-card p     { font-size:10px; color:var(--muted); line-height:1.55; }
+.ov-rule { background:var(--muted); margin:0 16px 16px; border-radius:3px; padding:10px 14px; font-size:11.5px; color:#fff; line-height:1.65; }
+.ov-rule strong { color:var(--gold); }
+.ov-btns { text-align:center; padding:0 16px 18px; }
+.btn-play {
+  background:var(--pink); color:#fff; border:none;
+  font-family:inherit; font-size:14px; font-weight:700;
+  padding:11px 32px; cursor:pointer; border-radius:2px;
+  box-shadow:4px 4px 0 var(--shadow);
+  transition:background .15s, transform .1s, box-shadow .1s;
+}
+.btn-play:hover  { background:var(--k-bright); transform:translateY(-2px); }
+.btn-play:active { transform:translateY(1px); box-shadow:2px 2px 0 var(--shadow); }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-pink-bar"></div>
+  <div class="logo">
+    <span class="logo-C">C</span><span class="logo-O">O</span><span class="logo-T">T</span><span class="logo-I">I</span><span class="logo-VITI">VITI</span>
+  </div>
+  <div class="hdr-divider"></div>
+  <span class="hdr-title">&#x1FAE7;&nbsp; Service Portal Bubble Explorer</span>
+  <span class="disc-pill" id="disc-pill">0 / 15 discovered</span>
+</header>
+
+<div class="stripe">
+  <div style="background:#EC008C"></div>
+  <div style="background:#31006F"></div>
+  <div style="background:#00AEFF"></div>
+</div>
+
+<div class="subhdr">
+  &#x1F3AF;&nbsp; 15 portal items &mdash; can you identify which ones are NOT Service Catalog items? Click each bubble to find out! &nbsp;&nbsp;
+  &#x1F7E3;&nbsp;Incident &nbsp; &#x1F49F;&nbsp;Generic Service Request &nbsp; &#x1F535;&nbsp;Service Catalog
+</div>
+
+<div id="arena"></div>
+
+<div id="feedback">
+  <div id="fb-type">&#x1F446;&nbsp; Those bubbles won&rsquo;t pop themselves, esteemed colleague. Click one to begin your distinguished IT literacy journey!</div>
+  <div id="fb-quip"></div>
+  <div id="fb-detail"></div>
+</div>
+
+<script>
+const R = 72;
+
+const META = {
+  incident: {
+    cls:'b-incident', stamp:'&#10007;&nbsp;Not a Catalog',
+    typeLbl:'&#x1F6A8;&nbsp; INCIDENT &mdash; Stand down from the portal! This is NOT a catalog item.',
+    verdictClr:'#CC0055', panelBg:'#240052', panelFg:'#CC6666', quipClr:'#C09FFF', detailClr:'#B090D0',
+    cardBg:'#EDE9FF', cardBar:'#31006F', cardTitleClr:'#31006F',
+    cardLbl:'&#x1F6A8;&nbsp; INCIDENT',
+    cardBody:'NOT a catalog item<br>Log it immediately &mdash;<br>no portal form needed',
+  },
+  gsr: {
+    cls:'b-gsr', stamp:'&#10007;&nbsp;Not a Catalog',
+    typeLbl:'&#x1F4CB;&nbsp; GENERIC SERVICE REQUEST &mdash; Also not a catalog item. Close, but no.',
+    verdictClr:'#EC008C', panelBg:'#450020', panelFg:'#F49AC1', quipClr:'#FFAAD4', detailClr:'#C080A0',
+    cardBg:'#FFE8F5', cardBar:'#EC008C', cardTitleClr:'#A0004F',
+    cardLbl:'&#x1F4CB;&nbsp; GENERIC SERVICE REQ.',
+    cardBody:'NOT a catalog item<br>For needs not listed<br>in the portal',
+  },
+  catalog: {
+    cls:'b-catalog', stamp:'&#10003;&nbsp;Catalog!',
+    typeLbl:'&#x1F4E6;&nbsp; SERVICE CATALOG (Fulfillment Task) &mdash; Correct! Submit via the Service Portal.',
+    verdictClr:'#13D0CA', panelBg:'#003040', panelFg:'#13D0CA', quipClr:'#80E8E0', detailClr:'#80C0CC',
+    cardBg:'#E5F5FF', cardBar:'#00AEFF', cardTitleClr:'#31006F',
+    cardLbl:'&#x1F4E6;&nbsp; SERVICE CATALOG',
+    cardBody:'13 pre-approved items<br>Submit via the<br>Service Portal',
+  },
+};
+
+const DONE_QUIPS = [
+  'The IT gods have updated your permanent record &mdash; favourably, of course.',
+  'The Change Advisory Board is slow-clapping in your general direction.',
+  'Your ITIL certificate is practically printing itself as we speak.',
+  'The on-call engineer has shed a single, dignified tear of pure joy.',
+  'The CMDB has been ceremonially updated to reflect your triumph.',
+  'HR has been notified. Favourably. We cannot stress this enough.',
+];
+
+const DEFS = [
+  { name:'Report An\nIncident\nOr Outage',    type:'incident', emoji:'&#x1F6A8;',
+    quip:'&#x1F6A8; This is NOT a Catalog item &mdash; put down the portal and log it immediately. The Break-Fix workflow will handle the rest.',
+    detail:'An INCIDENT is any unplanned event that interrupts or degrades an IT service.<br>Log it immediately &mdash; no pre-approval required. The Break-Fix workflow triggers<br>automatically to restore normal service as swiftly as possible.' },
+
+  { name:'Generic\nService\nRequest',          type:'gsr',      emoji:'&#x1F4CB;',
+    quip:'&#x1F4CB; This is NOT a Catalog item &mdash; for needs not listed in the portal, a Generic Service Request is the correct route. IT will assess and action it.',
+    detail:'A GENERIC SERVICE REQUEST is raised when your need cannot be fulfilled by a<br>standard Service Catalog item. IT will assess, scope, and route it appropriately.<br>Use this only when your item is NOT already listed in the Service Portal.' },
+
+  { name:'Report\nSecurity /\nPrivacy Event',  type:'catalog',  emoji:'&#x1F512;',
+    quip:'&#x1F512; Catalog confirmed! Your security concern has been pre-approved for submission. The compliance team is already anxious on your behalf.',
+    detail:'Report potential security or privacy events via the Service Portal.<br>Pre-approved catalog form with automated routing to the security team<br>for assessment and response.' },
+
+  { name:'Application &amp;\nAccount\nServices', type:'catalog', emoji:'&#x2699;&#xFE0F;',
+    quip:'&#x2699;&#xFE0F; Catalog confirmed! Click, submit, and let the automation handle it. You may now return to your regularly scheduled spreadsheets.',
+    detail:'Pre-approved requests for application access and account services.<br>Submit via the Service Portal &mdash; the automated workflow handles<br>provisioning and approval routing.' },
+
+  { name:'Infrastructure\nServices',           type:'catalog',  emoji:'&#x2601;&#xFE0F;',
+    quip:'&#x2601;&#xFE0F; Infrastructure support &mdash; pre-approved and waiting for your click like a well-trained golden retriever. The portal is ready. Are you?',
+    detail:'Standard infrastructure support and management service requests.<br>Pre-approved catalog item &mdash; select it in the Service Portal<br>and the workflow takes care of the rest.' },
+
+  { name:'Security\nServices',                 type:'catalog',  emoji:'&#x1F6E1;&#xFE0F;',
+    quip:'&#x1F6E1;&#xFE0F; Security services confirmed! The catalog has your back. Metaphorically speaking. Literally, that remains IT\'s department.',
+    detail:'Various security catalog items including consultation and advisory services.<br>Pre-approved and available in the Service Portal &mdash;<br>submit your request for automated routing.' },
+
+  { name:'Software\nServices',                 type:'catalog',  emoji:'&#x1F4BF;',
+    quip:'&#x1F4BF; Software request confirmed! Pre-approved, automated, and entirely free of awkward conversations with IT. A modern miracle.',
+    detail:'Order standard software for business use via the Service Portal.<br>Pre-approved catalog item with automated provisioning &mdash;<br>no manual IT intervention required.' },
+
+  { name:'Facilities',                         type:'catalog',  emoji:'&#x1F3E2;',
+    quip:'&#x1F3E2; Facilities management &mdash; the unsung heroes of the workplace. Honour their dedication with a properly submitted portal request.',
+    detail:'Facilities management service requests via the Service Portal.<br>Pre-approved catalog item &mdash; submit your request and the<br>workflow routes it to the Facilities team automatically.' },
+
+  { name:'Project\nIngestion',                 type:'catalog',  emoji:'&#x1F4E5;',
+    quip:'&#x1F4E5; Project intake confirmed! Submit via the portal and the infrastructure team will review it thoughtfully, probably over tea.',
+    detail:'Infrastructure Project Request Form for new project intake.<br>Pre-approved catalog item &mdash; submit via the Service Portal<br>for review and ingestion into the project pipeline.' },
+
+  { name:'JiraET\nAccess',                     type:'catalog',  emoji:'&#x1F5C3;&#xFE0F;',
+    quip:'&#x1F5C3;&#xFE0F; JiraET access confirmed! For those who believe their life simply does not contain enough Jira. Pre-approved. You\'re welcome.',
+    detail:'Request licenses for enhanced user roles and access in JiraET and Confluence.<br>Pre-approved catalog item &mdash; select the access level you need<br>and submit via the Service Portal.' },
+
+  { name:'JiraET\nAssignment\nGroup Request',  type:'catalog',  emoji:'&#x1F465;',
+    quip:'&#x1F465; Group management confirmed! Submit the form, satisfy the bureaucracy, and bask in the warm glow of access permissions duly granted.',
+    detail:'Create, modify, or retire JiraET User Access Groups.<br>Pre-approved catalog form &mdash; submit via the Service Portal<br>for automated processing.' },
+
+  { name:'JiraET\nEnhancement',                type:'catalog',  emoji:'&#x1F4A1;',
+    quip:'&#x1F4A1; Improving JiraET &mdash; bold and admirable. The team will review your optimism with great care and the occasional enthusiastic nod.',
+    detail:'Add new or update current workflows and processes in JiraET.<br>Submit an enhancement request via the Service Portal for the<br>JiraET team to assess and implement.' },
+
+  { name:'Contact the\nJiraET Team',           type:'catalog',  emoji:'&#x1F4AC;',
+    quip:'&#x1F4AC; A direct line to the JiraET team! They are ready. They have had their coffee. Your enquiry will be handled with appropriate gravitas.',
+    detail:'Get in touch directly with the JiraET support team.<br>Available as a catalog item in the Service Portal &mdash;<br>submit your enquiry for a response.' },
+
+  { name:'Production\nOperations',             type:'catalog',  emoji:'&#x1F511;',
+    quip:'&#x1F511; Production operations confirmed! Because things need to actually function in the real world. Catalog item verified. Carry on.',
+    detail:'Centralised service request management for Production Operations.<br>Pre-approved catalog item &mdash; submit via the Service Portal<br>for handling by the Production Ops team.' },
+
+  { name:'Hardware\nServices',                 type:'catalog',  emoji:'&#x1F5A5;&#xFE0F;',
+    quip:'&#x1F5A5;&#xFE0F; Hardware confirmed! The catalog has pre-approved your right to request equipment. That second monitor is closer than you think.',
+    detail:'Request hardware for business use via the Service Portal.<br>Pre-approved catalog item &mdash; select the hardware you need,<br>submit, and track delivery through the portal.' },
+];
+
+/* ── State ───────────────────────────────────────────────────────────────── */
+let bubbles = [], found = 0, raf = null;
+
+function init() {
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
+  const arena = document.getElementById('arena');
+  arena.innerHTML = '';
+  bubbles = []; found = 0;
+  document.getElementById('disc-pill').textContent = `0 / ${DEFS.length} discovered`;
+  resetFeedback();
+  spawnClouds(arena);
+  placeBubbles(arena);
+  raf = requestAnimationFrame(tick);
+}
+
+/* ── SVG cloud factory ────────────────────────────────────────────────────── */
+function makeSvgCloud(w, h, tint) {
+  const ns  = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('width', w); svg.setAttribute('height', h);
+  svg.style.overflow = 'visible';
+  const defs = document.createElementNS(ns, 'defs');
+  const flt  = document.createElementNS(ns, 'filter');
+  const fid  = 'cf' + Math.random().toString(36).slice(2);
+  flt.setAttribute('id', fid);
+  flt.setAttribute('x','-20%'); flt.setAttribute('y','-30%');
+  flt.setAttribute('width','140%'); flt.setAttribute('height','160%');
+  const blur = document.createElementNS(ns, 'feGaussianBlur');
+  blur.setAttribute('stdDeviation', Math.max(2, w * 0.022));
+  flt.appendChild(blur); defs.appendChild(flt); svg.appendChild(defs);
+  const g = document.createElementNS(ns, 'g');
+  g.setAttribute('fill', tint); g.setAttribute('filter', `url(#${fid})`);
+  const shapes = [
+    {t:'ellipse', cx:w*.50, cy:h*.76, rx:w*.44, ry:h*.26},
+    {t:'circle',  cx:w*.28, cy:h*.56, r:h*.31},
+    {t:'circle',  cx:w*.50, cy:h*.44, r:h*.36},
+    {t:'circle',  cx:w*.72, cy:h*.54, r:h*.28},
+    {t:'circle',  cx:w*.17, cy:h*.64, r:h*.22},
+    {t:'circle',  cx:w*.62, cy:h*.46, r:h*.23},
+    {t:'circle',  cx:w*.38, cy:h*.48, r:h*.26},
+  ];
+  for (const s of shapes) {
+    const el = document.createElementNS(ns, s.t);
+    if (s.t === 'ellipse') {
+      el.setAttribute('cx',s.cx); el.setAttribute('cy',s.cy);
+      el.setAttribute('rx',s.rx); el.setAttribute('ry',s.ry);
+    } else {
+      el.setAttribute('cx',s.cx); el.setAttribute('cy',s.cy); el.setAttribute('r',s.r);
+    }
+    g.appendChild(el);
+  }
+  svg.appendChild(g); return svg;
+}
+
+function spawnClouds(arena) {
+  const cfgs = [
+    [320,110,'6%', .13,55,-10,'rtl','rgba(255,255,255,.98)'],
+    [200, 70,'14%',.10,72,-25,'ltr','rgba(240,238,255,.98)'],
+    [420,140,'9%', .09,90,-40,'rtl','rgba(255,255,255,.96)'],
+    [160, 60,'26%',.08,65,-15,'ltr','rgba(235,230,255,.97)'],
+    [280,100,'22%',.11,80,-50,'rtl','rgba(255,255,255,.97)'],
+    [380,130,'3%', .07,100,-35,'ltr','rgba(245,242,255,.98)'],
+    [130, 50,'34%',.08,60, -5,'rtl','rgba(255,255,255,.95)'],
+    [240, 85,'30%',.09,75,-60,'ltr','rgba(238,235,255,.97)'],
+  ];
+  for (const [cw,ch,top,op,dur,delay,dir,tint] of cfgs) {
+    const wrap = document.createElement('div');
+    wrap.className = 'cloud';
+    wrap.style.cssText = `top:${top};opacity:${op};animation:drift-${dir} ${dur}s linear ${delay}s infinite;`;
+    wrap.appendChild(makeSvgCloud(cw, ch, tint));
+    arena.appendChild(wrap);
+  }
+}
+
+/* ── Place bubbles ───────────────────────────────────────────────────────── */
+function placeBubbles(arena) {
+  const w = arena.clientWidth || window.innerWidth;
+  const h = arena.clientHeight || (window.innerHeight - 230);
+  const pad = R + 10;
+  const defs = [...DEFS].sort(() => Math.random() - 0.5);
+  const COLS = 5, ROWS = 3, cw = w/COLS, ch = h/ROWS;
+
+  defs.forEach((def, i) => {
+    const col = i % COLS, row = Math.floor(i / COLS);
+    let cx = cw*(col+.5) + (Math.random()-.5)*22;
+    let cy = ch*(row+.5) + (Math.random()-.5)*22;
+    cx = Math.max(pad, Math.min(w-pad, cx));
+    cy = Math.max(pad, Math.min(h-pad, cy));
+
+    const speed = .40 + Math.random()*.80;
+    const angle = Math.random()*2*Math.PI;
+    const m = META[def.type];
+    const el = document.createElement('div');
+    el.className = `bubble ${m.cls}`;
+    el.style.animationDelay    = `${(Math.random()*3).toFixed(2)}s`;
+    el.style.animationDuration = `${(2.8+Math.random()*1.8).toFixed(2)}s`;
+    el.innerHTML =
+      `<span class="b-emoji">${def.emoji}</span>` +
+      `<span class="b-name">${def.name.replace(/\n/g,'<br>')}</span>` +
+      `<span class="b-stamp">${m.stamp}</span>`;
+    el.style.left = `${cx-R}px`; el.style.top = `${cy-R}px`;
+
+    const state = { el, def, x:cx, y:cy, dx:speed*Math.cos(angle), dy:speed*Math.sin(angle), discovered:false };
+
+    el.addEventListener('mouseenter', () => { if (!state.discovered) el.classList.add('tilting'); });
+    el.addEventListener('mouseleave', () => { el.classList.remove('tilting'); el.style.transform=''; });
+    el.addEventListener('mousemove', e => {
+      if (state.discovered) return;
+      const rc = el.getBoundingClientRect();
+      const tx = ((e.clientX-rc.left)/rc.width -.5)*2;
+      const ty = ((e.clientY-rc.top) /rc.height-.5)*2;
+      el.style.transform = `perspective(420px) rotateX(${-ty*14}deg) rotateY(${tx*14}deg) scale(1.10) translateY(-5px)`;
+    });
+    el.addEventListener('click', () => onClick(state));
+    arena.appendChild(el);
+    bubbles.push(state);
+  });
+}
+
+/* ── Click ───────────────────────────────────────────────────────────────── */
+function onClick(s) {
+  if (!s.discovered) {
+    s.discovered = true;
+    s.el.classList.remove('tilting');
+    s.el.style.transform = '';
+    // Pop animation, then mark discovered
+    s.el.classList.add('popping');
+    setTimeout(() => { s.el.classList.remove('popping'); s.el.classList.add('discovered'); }, 380);
+    s.dx *= 0.28; s.dy *= 0.28;
+    found++;
+    document.getElementById('disc-pill').textContent = `${found} / ${DEFS.length} discovered`;
+  }
+
+  const m  = META[s.def.type];
+  const fb = document.getElementById('feedback');
+  fb.style.background = m.panelBg;
+  document.getElementById('fb-type').style.color   = m.panelFg;
+  document.getElementById('fb-type').innerHTML     = m.typeLbl;
+  document.getElementById('fb-quip').style.color   = m.quipClr;
+  document.getElementById('fb-quip').innerHTML     = s.def.quip;
+  document.getElementById('fb-detail').style.color = m.detailClr;
+  document.getElementById('fb-detail').innerHTML   = s.def.detail;
+
+  if (found === DEFS.length) setTimeout(showDone, 700);
+}
+
+function resetFeedback() {
+  const fb = document.getElementById('feedback');
+  fb.style.background = '#31006F';
+  document.getElementById('fb-type').style.color = '#F98E2B';
+  document.getElementById('fb-type').innerHTML   = '&#x1F446;&nbsp; Those bubbles won&rsquo;t pop themselves, esteemed colleague. Click one to begin your distinguished IT literacy journey!';
+  document.getElementById('fb-quip').innerHTML   = '';
+  document.getElementById('fb-detail').innerHTML = '';
+}
+
+/* ── Animation ───────────────────────────────────────────────────────────── */
+function tick() {
+  const arena = document.getElementById('arena');
+  const w = arena.clientWidth, h = arena.clientHeight, pad = R+8;
+  for (const s of bubbles) {
+    s.x += s.dx; s.y += s.dy;
+    if (s.x < pad)     { s.x = pad;     s.dx =  Math.abs(s.dx); }
+    if (s.x > w - pad) { s.x = w - pad; s.dx = -Math.abs(s.dx); }
+    if (s.y < pad)     { s.y = pad;     s.dy =  Math.abs(s.dy); }
+    if (s.y > h - pad) { s.y = h - pad; s.dy = -Math.abs(s.dy); }
+    s.el.style.left = `${s.x-R}px`;
+    s.el.style.top  = `${s.y-R}px`;
+  }
+  raf = requestAnimationFrame(tick);
+}
+
+/* ── Completion overlay ──────────────────────────────────────────────────── */
+function showDone() {
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
+  const quip = DONE_QUIPS[Math.floor(Math.random()*DONE_QUIPS.length)];
+  const wrap = document.createElement('div');
+  wrap.className = 'ov-wrap';
+  wrap.innerHTML = `
+<div class="ov-card">
+  <div class="ov-banner">
+    <div class="ov-stripe">
+      <div style="background:#EC008C"></div>
+      <div style="background:#31006F"></div>
+      <div style="background:#00AEFF"></div>
+    </div>
+    <div class="ov-title">&#x1F3C6;&nbsp; All 15 Bubbles Unmasked!</div>
+    <div class="ov-sub">${quip}</div>
+  </div>
+  <div class="ov-cards">
+    ${['incident','gsr','catalog'].map(t => {
+      const m = META[t];
+      return `<div class="ov-type-card">
+        <div class="bar" style="background:${m.cardBar}"></div>
+        <div class="body" style="background:${m.cardBg}">
+          <div class="lbl" style="color:${m.cardTitleClr}">${m.cardLbl}</div>
+          <p>${m.cardBody}</p>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="ov-rule">
+    &#x1F4A1;&nbsp;<strong>Key Rule:</strong> An INCIDENT or GENERIC SERVICE REQUEST is NOT a catalog item.<br>
+    The Service Catalog contains pre-approved items with automated workflows in the portal.<br>
+    <em style="color:#C8E8FF">This message has been certified by the Change Advisory Board.</em>
+  </div>
+  <div class="ov-btns">
+    <button class="btn-play" id="btn-again">&#160; Explore Again &#160;</button>
+  </div>
+</div>`;
+  document.body.appendChild(wrap);
+  document.getElementById('btn-again').addEventListener('click', () => {
+    document.body.removeChild(wrap);
+    init();
+  });
+}
+
+window.addEventListener('load', init);
+let _rt;
+window.addEventListener('resize', () => { clearTimeout(_rt); _rt = setTimeout(init, 180); });
+</script>
+</body>
+</html>

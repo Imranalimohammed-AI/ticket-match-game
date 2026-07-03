@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — Cotiviti IT Ticket Triage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:    #F5F3FF;
+      --panel: #31006F;
+      --card:  #FFFFFF;
+      --edge:  #C2BFE0;
+      --shadow: rgba(49,0,111,0.13);
+      --text:  #31006F;
+      --muted: #7C77AD;
+      --pink:  #EC008C;
+      --danger:#CC0055;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: "Montserrat", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tri-colour stripe */
+    .stripe {
+      height: 5px;
+      background: linear-gradient(90deg,
+        #EC008C 0%, #EC008C 33.3%,
+        #31006F 33.3%, #31006F 66.6%,
+        #00AEFF 66.6%, #00AEFF 100%);
+      flex-shrink: 0;
+    }
+
+    /* Header */
+    header {
+      background: var(--panel);
+      height: 58px;
+      display: flex;
+      align-items: center;
+      padding: 0 2rem;
+      box-shadow: 0 3px 0 rgba(49,0,111,0.25);
+    }
+    .coti-logo {
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+    }
+    .ll-c, .ll-t, .ll-viti { color: #ffffff; }
+    .ll-o   { color: #9579D3; }
+    .ll-i   { color: #EC008C; }
+
+    /* Centred login card */
+    .page-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .login-wrapper { width: 100%; max-width: 420px; }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .brand-logo {
+      font-size: 2.6rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .brand-sub {
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      border-top: 3px solid var(--panel);
+      border-left: 3px solid var(--panel);
+      box-shadow: 4px 4px 0 var(--shadow);
+      padding: 2.2rem 2rem;
+    }
+
+    .card h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.6rem;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border: 1.5px solid var(--edge);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="password"]::placeholder { color: var(--muted); opacity: 0.6; }
+    input[type="password"]:focus {
+      border-color: var(--panel);
+      box-shadow: 0 0 0 3px rgba(49,0,111,0.15);
+    }
+
+    .error-msg {
+      margin-top: 0.9rem;
+      padding: 0.65rem 1rem;
+      background: rgba(204,0,85,0.08);
+      border: 1.5px solid rgba(204,0,85,0.35);
+      border-left: 4px solid var(--danger);
+      border-radius: 7px;
+      color: var(--danger);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .btn-submit {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.8rem 1rem;
+      background: var(--panel);
+      color: #ffffff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 3px 3px 0 rgba(49,0,111,0.25);
+    }
+    .btn-submit:hover  { background: #4A007F; }
+    .btn-submit:active { transform: scale(0.98); }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 1.3rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--panel); }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="stripe"></div>
+
+  <header>
+    <div class="coti-logo">
+      <span class="ll-c">C</span><span class="ll-o">O</span><span class="ll-t">T</span><span class="ll-i">I</span><span class="ll-viti">VITI</span>
+    </div>
+  </header>
+
+  <div class="page-body">
+    <div class="login-wrapper">
+
+      <!-- Brand logo (large, centred) -->
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="{{ url_for('static', filename='cotiviti-logo.png') }}" alt="Cotiviti" style="height:48px;width:auto;" />
+        </div>
+        <div class="brand-sub">IT Ticket Triage &nbsp;·&nbsp; Admin Portal</div>
+      </div>
+
+      <!-- Login card -->
+      <div class="card">
+        <h1>🔐 &nbsp;Admin Sign In</h1>
+
+        <form method="POST" action="{{ url_for('admin_login') }}">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            placeholder="Enter admin password"
+            autofocus
+            required
+          />
+
+          {% if error %}
+            <div class="error-msg">{{ error }}</div>
+          {% endif %}
+
+          <button type="submit" class="btn-submit">Sign In →</button>
+        </form>
+      </div>
+
+      <a href="{{ url_for('index') }}" class="back-link">← Back to the game</a>
+    </div>
+  </div>
+
+  <footer>© 2025 Cotiviti, Inc. All rights reserved. All proprietary information shall remain the sole and exclusive property of Cotiviti, Inc.</footer>
+</body>
+</html>

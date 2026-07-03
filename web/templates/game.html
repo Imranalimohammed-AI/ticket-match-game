@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IT Ticket Triage — Cotiviti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ══════════════════════════════════════
+       CSS CUSTOM PROPERTIES
+    ══════════════════════════════════════ */
+    :root {
+      /* Official Cotiviti Brand Palette */
+      --bg:      #F5F3FF;   /* very light lavender background */
+      --panel:   #31006F;   /* Deep Purple — headers, modals */
+      --card:    #FFFFFF;   /* Snow White — cards */
+      --card-hvr:#EDE9FF;   /* Light Violet hover */
+      --shadow:  rgba(49,0,111,0.13);
+      --edge:    #C2BFE0;   /* Light Violet border */
+      --purple:  #31006F;   /* Deep Purple → Incident */
+      --pink:    #EC008C;   /* Lively Pink → Generic SR */
+      --teal:    #00AEFF;   /* Sky Blue → Service Catalog */
+      --p-bright:#9579D3;   /* Soothing Violet */
+      --k-bright:#EC008C;   /* Lively Pink (bright) */
+      --t-bright:#00AEFF;   /* Sky Blue (bright) */
+      --inc-surf:#EDE9FF;   /* Light Purple surface */
+      --gsr-surf:#FFE8F5;   /* Light Pink surface */
+      --cat-surf:#E5F5FF;   /* Light Blue surface */
+      --gold:    #F98E2B;   /* Orangesicle */
+      --white:   #FFFFFF;
+      --text:    #31006F;   /* Body text */
+      --muted:   #7C77AD;   /* Light Purple muted */
+      --success: #13D0CA;   /* Sea Green */
+      --danger:  #CC0055;   /* Dark Magenta */
+      --sel:     #9579D3;   /* Soothing Violet — selected */
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: "Montserrat", Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════
+       MODALS — shared overlay
+    ══════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(14,12,40,0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .modal-overlay.hidden { display: none; }
+
+    .modal-box {
+      background: var(--panel);
+      border-top: 2px solid var(--edge);
+      border-left: 2px solid var(--edge);
+      border-right: 1px solid rgba(58,53,114,0.4);
+      border-bottom: 1px solid rgba(58,53,114,0.4);
+      box-shadow: 6px 6px 0 var(--shadow);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 620px;
+      padding: 2.2rem 2rem 2rem;
+      position: relative;
+    }
+    .modal-box.wide { max-width: 900px; }
+
+    .modal-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 0.4rem;
+      text-align: center;
+    }
+    .modal-sub {
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 1.8rem;
+    }
+
+    /* ── User modal ── */
+    .form-row { margin-bottom: 1.1rem; }
+    .form-row label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .form-row input {
+      width: 100%;
+      padding: 0.85rem 1.1rem;
+      background: var(--card);
+      border: 1.5px solid var(--edge);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-row input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.25);
+    }
+    .form-error {
+      margin-top: 0.5rem;
+      font-size: 0.82rem;
+      color: #fb7185;
+      display: none;
+    }
+    .form-error.visible { display: block; }
+
+    /* ── Welcome modal — type cards ── */
+    .type-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.9rem;
+      margin-bottom: 1.6rem;
+    }
+    @media (max-width: 540px) {
+      .type-cards { grid-template-columns: 1fr; }
+    }
+    .type-card {
+      border-radius: 12px;
+      padding: 1.1rem 0.9rem;
+      box-shadow: 3px 3px 0 var(--shadow);
+      border-top: 2px solid var(--edge);
+      border-left: 2px solid var(--edge);
+    }
+    .type-card .tc-emoji { font-size: 1.6rem; margin-bottom: 0.45rem; }
+    .type-card .tc-name  { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+    .type-card .tc-desc  { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
+    .tc-inc  { background: var(--inc-surf); border-color: var(--purple); }
+    .tc-gsr  { background: var(--gsr-surf); border-color: var(--pink);   }
+    .tc-cat  { background: var(--cat-surf); border-color: var(--teal);   }
+
+    .tc-inc .tc-name { color: var(--p-bright); }
+    .tc-gsr .tc-name { color: var(--k-bright); }
+    .tc-cat .tc-name { color: var(--t-bright); }
+
+    .rules-list {
+      list-style: none;
+      margin-bottom: 1.6rem;
+    }
+    .rules-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+      padding: 0.3rem 0;
+    }
+    .rules-list li .icon { flex-shrink: 0; font-size: 0.95rem; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.6rem;
+      border-radius: 9px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+      letter-spacing: 0.02em;
+    }
+    .btn:hover  { opacity: 0.88; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple), var(--sel));
+      color: var(--white);
+      width: 100%;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid var(--edge);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { border-color: var(--purple); color: var(--p-bright); }
+
+    /* ══════════════════════════════════════
+       GAME APP SHELL
+    ══════════════════════════════════════ */
+    #app { display: none; min-height: 100vh; flex-direction: column; }
+    #app.visible { display: flex; }
+
+    /* Top stripe */
+    .stripe {
+      height: 4px;
+      background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 50%, var(--teal) 100%);
+      flex-shrink: 0;
+    }
+
+    /* Header */
+    .game-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--edge);
+      padding: 0.7rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+    /* Cotiviti logo letter colours (on Deep Purple header) */
+    .hdr-logo {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+    }
+    .ll-c, .ll-t, .ll-viti { color: #ffffff; }
+    .ll-o  { color: #9579D3; }
+    .ll-i  { color: #EC008C; }
+    .hdr-sep { width: 1px; height: 1.4rem; background: var(--edge); }
+    .hdr-title {
+      font-size: 0.88rem;
+      color: var(--muted);
+      flex: 1;
+    }
+    .hdr-score-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .score-pill {
+      background: var(--card);
+      border: 1.5px solid var(--edge);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .streak-pill {
+      background: var(--card);
+      border: 1.5px solid var(--edge);
+      border-radius: 999px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--p-bright);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-width: 60px;
+    }
+
+    /* Sub header */
+    .subhdr {
+      text-align: center;
+      padding: 0.5rem 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      background: var(--bg);
+      border-bottom: 1px solid rgba(58,53,114,0.3);
+      flex-shrink: 0;
+    }
+
+    /* Column headers */
+    .col-hdrs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 0.7rem 1rem 0;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .col-hdr {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 0.2rem;
+    }
+
+    /* Game board */
+    .game-main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 0.3rem auto 0;
+      padding: 0 1rem;
+      width: 100%;
+      align-content: start;
+    }
+    @media (max-width: 640px) {
+      .game-main  { grid-template-columns: 1fr; }
+      .col-hdrs   { grid-template-columns: 1fr; }
+    }
+
+    /* Scenario cards */
+    .scenario-card {
+      background: var(--card);
+      border-top: 2px solid var(--edge);
+      border-left: 2px solid var(--edge);
+      border-right: 1px solid rgba(58,53,114,0.25);
+      border-bottom: 1px solid rgba(58,53,114,0.25);
+      box-shadow: 3px 3px 0 var(--shadow);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      font-size: 1.05rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+      line-height: 1.55;
+      user-select: none;
+    }
+    .scenario-card:hover:not(.matched):not(.selected) {
+      background: var(--card-hvr);
+      transform: translateY(-1px);
+    }
+    .scenario-card.selected {
+      box-shadow: 0 0 16px rgba(236,0,140,0.35), 3px 3px 0 var(--shadow);
+      border-color: var(--pink);
+      background: var(--sel);
+      color: #ffffff;
+    }
+    .scenario-card.matched {
+      opacity: 0.65;
+      cursor: default;
+      pointer-events: none;
+    }
+    .scenario-card.flash-red {
+      background: rgba(204,0,85,0.18) !important;
+    }
+
+    /* Bucket cards */
+    .bucket-card {
+      background: var(--card);
+      border-top: 2px solid var(--edge);
+      border-left: 2px solid var(--edge);
+      border-right: 1px solid rgba(58,53,114,0.25);
+      border-bottom: 1px solid rgba(58,53,114,0.25);
+      box-shadow: 3px 3px 0 var(--shadow);
+      border-radius: 10px;
+      padding: 1.1rem 1.2rem;
+      cursor: pointer;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .bucket-card:hover {
+      background: var(--card-hvr);
+      transform: translateY(-1px);
+    }
+    .bucket-card .bc-emoji { font-size: 1.3rem; }
+    .bucket-card .bc-name {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .bucket-card .bc-count {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .bucket-card.bc-inc { border-color: var(--purple); background: var(--inc-surf); }
+    .bucket-card.bc-gsr { border-color: var(--pink);   background: var(--gsr-surf); }
+    .bucket-card.bc-cat { border-color: var(--teal);   background: var(--cat-surf); }
+    .bucket-card.bc-inc .bc-name { color: #31006F; }
+    .bucket-card.bc-gsr .bc-name { color: #EC008C; }
+    .bucket-card.bc-cat .bc-name { color: #0070C0; }
+
+    /* Feedback bar */
+    #feedback {
+      max-width: 1100px;
+      margin: 0.75rem auto 0;
+      padding: 0 1rem;
+      width: 100%;
+      min-height: 3.2rem;
+      display: flex;
+      align-items: center;
+    }
+    .feedback-msg {
+      font-size: 1.1rem;
+      padding: 0.75rem 1.4rem;
+      border-radius: 8px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      animation: slideUp 0.22s ease;
+      width: 100%;
+      display: block;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .feedback-correct {
+      background: rgba(19,208,202,0.14);
+      border: 1.5px solid rgba(19,208,202,0.6);
+      border-left: 6px solid #13D0CA;
+      color: #31006F;
+      font-weight: 800;
+      box-shadow: 0 2px 14px rgba(19,208,202,0.18);
+    }
+    .feedback-wrong {
+      background: rgba(236,0,140,0.1);
+      border: 1.5px solid rgba(236,0,140,0.45);
+      border-left: 6px solid #EC008C;
+      color: #31006F;
+      font-weight: 800;
+      box-shadow: 0 2px 14px rgba(236,0,140,0.12);
+    }
+
+    /* Progress row */
+    .progress-row {
+      max-width: 1100px;
+      margin: 0.6rem auto 0.8rem;
+      padding: 0 1rem;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .progress-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .progress-track {
+      flex: 1;
+      height: 5px;
+      background: var(--card);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--teal));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-count {
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ══════════════════════════════════════
+       END MODAL
+    ══════════════════════════════════════ */
+    .end-score-pill {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .end-score-inner {
+      display: inline-block;
+      background: var(--sel);
+      border: 2px solid var(--purple);
+      border-radius: 999px;
+      padding: 0.5rem 1.8rem;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--gold);
+      box-shadow: 0 0 20px rgba(139,92,246,0.35);
+    }
+    .end-grade {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+    .end-flawless {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+
+    /* KB review cards */
+    .kb-cards-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 1.6rem;
+    }
+    @media (max-width: 600px) {
+      .kb-cards-row { grid-template-columns: 1fr; }
+    }
+    .kb-card {
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 3px 3px 0 var(--shadow);
+      border-top: 2px solid var(--edge);
+      border-left: 2px solid var(--edge);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+    .kb-card.kbc-inc { background: var(--inc-surf); border-color: var(--purple); }
+    .kb-card.kbc-gsr { background: var(--gsr-surf); border-color: var(--pink);   }
+    .kb-card.kbc-cat { background: var(--cat-surf); border-color: var(--teal);   }
+    .kb-card .kbc-emoji { font-size: 1.4rem; margin-bottom: 0.35rem; }
+    .kb-card .kbc-ref {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+    .kbc-inc .kbc-ref { color: var(--p-bright); }
+    .kbc-gsr .kbc-ref { color: var(--k-bright); }
+    .kbc-cat .kbc-ref { color: var(--t-bright); }
+    .kb-card .kbc-body {
+      color: var(--muted);
+      font-size: 0.79rem;
+      white-space: pre-line;
+      margin-bottom: 0.7rem;
+    }
+    .btn-kb-view {
+      background: transparent;
+      border: 1px solid var(--edge);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .kbc-inc .btn-kb-view:hover { border-color: var(--purple); color: var(--p-bright); }
+    .kbc-gsr .btn-kb-view:hover { border-color: var(--pink);   color: var(--k-bright); }
+    .kbc-cat .btn-kb-view:hover { border-color: var(--teal);   color: var(--t-bright); }
+
+    /* Scenario review table */
+    .review-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.7rem;
+    }
+    .review-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      margin-bottom: 1.4rem;
+    }
+    .review-table th {
+      text-align: left;
+      padding: 0.5rem 0.7rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--edge);
+    }
+    .review-table td {
+      padding: 0.6rem 0.7rem;
+      border-bottom: 1px solid rgba(58,53,114,0.3);
+      vertical-align: top;
+      font-size: 0.83rem;
+    }
+    .review-table tr:last-child td { border-bottom: none; }
+    .review-table tr.rt-inc td { background: rgba(30,21,82,0.5); }
+    .review-table tr.rt-gsr td { background: rgba(45,16,69,0.5); }
+    .review-table tr.rt-cat td { background: rgba(12,40,72,0.5); }
+    .rt-type-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .rt-type-badge.inc { background: rgba(139,92,246,0.2); color: var(--p-bright); border: 1px solid rgba(139,92,246,0.4); }
+    .rt-type-badge.gsr { background: rgba(236,72,153,0.2); color: var(--k-bright); border: 1px solid rgba(236,72,153,0.4); }
+    .rt-type-badge.cat { background: rgba(6,182,212,0.2);  color: var(--t-bright); border: 1px solid rgba(6,182,212,0.4); }
+    .rt-kb-text { color: var(--muted); font-size: 0.8rem; font-style: italic; }
+
+    /* KB pills */
+    .kb-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.4rem;
+    }
+    .kb-pill {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: opacity 0.15s;
+    }
+    .kb-pill:hover { opacity: 0.78; }
+    .kbp-inc { background: rgba(139,92,246,0.15); color: var(--p-bright); border-color: rgba(139,92,246,0.45); }
+    .kbp-gsr { background: rgba(236,72,153,0.15); color: var(--k-bright); border-color: rgba(236,72,153,0.45); }
+    .kbp-cat { background: rgba(6,182,212,0.15);  color: var(--t-bright); border-color: rgba(6,182,212,0.45);  }
+
+    /* Save notice */
+    #save-notice {
+      text-align: center;
+      font-size: 0.82rem;
+      margin-top: 0.4rem;
+      min-height: 1.3rem;
+    }
+    .save-ok  { color: var(--success); }
+    .save-err { color: var(--danger);  }
+
+    /* ── KB Article Modal ── */
+    #modal-kb .modal-box { max-width: 520px; }
+    .kb-article-ref {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+    .kb-article-body {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    /* ══════════════════════════════════════
+       ANIMATIONS
+    ══════════════════════════════════════ */
+    @keyframes shake {
+      0%   { transform: translateX(0); }
+      20%  { transform: translateX(-5px); }
+      40%  { transform: translateX(5px); }
+      60%  { transform: translateX(-5px); }
+      80%  { transform: translateX(5px); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .shake {
+      animation: shake 0.3s ease both;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       MODAL 1 — User Identity
+  ══════════════════════════════════════ -->
+  <div id="modal-user" class="modal-overlay">
+    <div class="modal-box">
+      <img src="{{ url_for('static', filename='cotiviti-logo.png') }}" alt="Cotiviti" style="height:32px;width:auto;margin-bottom:0.5rem;" />
+      <div class="modal-title">🎫 IT Ticket Triage</div>
+      <div class="modal-sub">Enter your details to begin. Results are saved for leaderboard tracking.</div>
+
+      <div class="form-row">
+        <label for="input-name">Your Name</label>
+        <input type="text" id="input-name" placeholder="e.g. Sarah Jones" autocomplete="name" />
+      </div>
+      <div class="form-row">
+        <label for="input-email">Work Email</label>
+        <input type="email" id="input-email" placeholder="you@cotiviti.com" autocomplete="email" />
+        <div class="form-error" id="email-error">Please enter a valid work email address.</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="submitUserForm()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MODAL 2 — Welcome / Rules
+  ══════════════════════════════════════ -->
+  <div id="modal-welcome" class="modal-overlay hidden">
+    <div class="modal-box wide">
+      <img src="{{ url_for('static', filename='cotiviti-logo.png') }}" alt="Cotiviti" style="height:32px;width:auto;margin-bottom:0.5rem;" />
+      <div class="modal-title">Welcome, <span id="welcome-name">Player</span>!</div>
+      <div class="modal-sub">Match each scenario to the correct ITSM ticket type. One round — 6 tickets — 100 pts max.</div>
+
+      <div class="type-cards">
+        <div class="type-card tc-inc">
+          <div class="tc-emoji">🚨</div>
+          <div class="tc-name">Incident</div>
+          <div class="tc-desc">Something that was working has broken or degraded unexpectedly. Log immediately — no pre-approval needed.</div>
+        </div>
+        <div class="type-card tc-gsr">
+          <div class="tc-emoji">📋</div>
+          <div class="tc-name">Generic Service Request</div>
+          <div class="tc-desc">A need that cannot be fulfilled by a standard catalog item. IT will assess, scope, and route it.</div>
+        </div>
+        <div class="type-card tc-cat">
+          <div class="tc-emoji">📦</div>
+          <div class="tc-name">Service Catalog</div>
+          <div class="tc-desc">Pre-approved, standardised items fulfilled via automated portal workflows. Select, submit, done.</div>
+        </div>
+      </div>
+
+      <ul class="rules-list">
+        <li><span class="icon">🎯</span> Click a scenario, then click the matching ticket type bucket.</li>
+        <li><span class="icon">⭐</span> 10 pts base + 2 pt streak bonus per correct match + 10 pt flawless bonus.</li>
+        <li><span class="icon">🔄</span> Wrong answers reset your streak — but you can still recover.</li>
+      </ul>
+
+      <button class="btn btn-primary" onclick="startGame()">Start Game →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MODAL 3 — End Screen
+  ══════════════════════════════════════ -->
+  <div id="modal-end" class="modal-overlay hidden">
+    <div class="modal-box wide" style="max-height:90vh; overflow-y:auto;">
+
+      <div class="end-score-pill">
+        <div class="end-score-inner" id="end-score-val">0</div>
+      </div>
+      <div class="end-grade" id="end-grade-msg"></div>
+      <div class="end-flawless" id="end-flawless-msg" style="display:none">
+        ✨ Flawless run! +10 bonus points included.
+      </div>
+
+      <!-- KB Review cards -->
+      <div class="review-section-title" style="margin-top:1.2rem;">📚 KB REVIEW</div>
+      <div class="kb-cards-row" id="end-kb-cards"></div>
+
+      <!-- Scenario table -->
+      <div class="review-section-title">SCENARIO-BY-SCENARIO BREAKDOWN</div>
+      <div style="overflow-x:auto;margin-bottom:1rem;">
+        <table class="review-table" id="review-table">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Correct Type</th>
+              <th>Explanation</th>
+            </tr>
+          </thead>
+          <tbody id="review-table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- KB quick-ref pills -->
+      <div class="review-section-title">QUICK REFERENCE</div>
+      <div class="kb-pills-row">
+        <span class="kb-pill kbp-inc" onclick="showKB('Incident')">🚨 KB-INC-001 Incident</span>
+        <span class="kb-pill kbp-gsr" onclick="showKB('Generic Service Request')">📋 KB-GSR-002 Generic SR</span>
+        <span class="kb-pill kbp-cat" onclick="showKB('Service Catalog (Fulfillment Task)')">📦 KB-CAT-003 Service Catalog</span>
+      </div>
+
+      <!-- Save notice -->
+      <div id="save-notice"></div>
+
+      <button class="btn btn-primary" style="margin-top:1rem;" onclick="restartGame()">🔄 Play Again</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MODAL 4 — KB Article popup
+  ══════════════════════════════════════ -->
+  <div id="modal-kb" class="modal-overlay hidden">
+    <div class="modal-box">
+      <span class="kb-article-ref" id="kb-article-ref"></span>
+      <div class="kb-article-body" id="kb-article-body"></div>
+      <button class="btn btn-ghost" style="margin-top:1.4rem;width:100%;" onclick="closeKB()">Close</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       GAME APP
+  ══════════════════════════════════════ -->
+  <div id="app">
+    <div class="stripe"></div>
+
+    <header class="game-header">
+      <span class="hdr-logo"><span class="ll-c">C</span><span class="ll-o">O</span><span class="ll-t">T</span><span class="ll-i">I</span><span class="ll-viti">VITI</span></span>
+      <span class="hdr-sep"></span>
+      <span class="hdr-title">IT Ticket Triage Challenge</span>
+      <div class="hdr-score-wrap">
+        <div class="score-pill">⭐ <span id="hdr-score">0</span></div>
+        <div class="streak-pill">🔥 <span id="hdr-streak">0</span></div>
+      </div>
+    </header>
+
+    <div class="subhdr">One Round &nbsp;·&nbsp; 6 Tickets &nbsp;·&nbsp; Max 100 pts</div>
+
+    <div class="col-hdrs">
+      <div class="col-hdr">SCENARIOS</div>
+      <div class="col-hdr">TICKET TYPES</div>
+    </div>
+
+    <div class="game-main">
+      <div id="scenarios"></div>
+      <div id="types"></div>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div class="progress-row">
+      <span class="progress-label">PROGRESS</span>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <span class="progress-count" id="progress-count">0 / 6</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT — FULL GAME LOGIC
+  ══════════════════════════════════════ -->
+  <script>
+  "use strict";
+
+  /* ── Types ── */
+  const TYPES = {
+    "Incident": {
+      emoji:  "🚨",
+      border: "#31006F",   /* Cotiviti Deep Purple */
+      bright: "#9579D3",   /* Soothing Violet */
+      surf:   "#EDE9FF",   /* Light Purple surface */
+      kbRef:  "KB-INC-001",
+      kbBody: "An Incident is any unplanned event that interrupts or degrades an IT service. Log it immediately — no pre-approval required. Break-Fix workflow triggers automatically.\n\nKey: Was this working before and suddenly stopped?",
+    },
+    "Generic Service Request": {
+      emoji:  "📋",
+      border: "#EC008C",   /* Cotiviti Lively Pink */
+      bright: "#9B006A",   /* Darker Pink for readability */
+      surf:   "#FFE8F5",   /* Light Pink surface */
+      kbRef:  "KB-GSR-002",
+      kbBody: "A Generic Service Request is raised when your need cannot be fulfilled by a standard Service Catalog item. IT will assess, scope, and route it appropriately.\n\nKey: Is this a new need not listed in the Service Portal?",
+    },
+    "Service Catalog (Fulfillment Task)": {
+      emoji:  "📦",
+      border: "#00AEFF",   /* Cotiviti Sky Blue */
+      bright: "#0070C0",   /* Darker Blue for readability */
+      surf:   "#E5F5FF",   /* Light Blue surface */
+      kbRef:  "KB-CAT-003",
+      kbBody: "Service Catalog items are standardised, pre-approved requests fulfilled via automated workflows in the Cotiviti Service Portal. Select, submit, done.\n\nKey: Is this item available and listed in the Service Portal?",
+    },
+  };
+
+  /* ── All Scenarios (25 total) ── */
+  const ALL_SCENARIOS = [
+    // Incidents (14)
+    {s:"🖥️ My laptop won't power on at all",                              t:"Incident",                          kb:"Complete hardware failure = Incident. Log immediately."},
+    {s:"🌐 GlobalProtect VPN shows 'Gateway not responding'",              t:"Incident",                          kb:"Unplanned network failure blocking access = Incident."},
+    {s:"📧 Outlook keeps crashing immediately on launch",                  t:"Incident",                          kb:"Unexpected app crash disrupting email = Incident."},
+    {s:"📧 All Outlook emails stuck in Outbox — cannot send or receive",   t:"Incident",                          kb:"Mail flow disruption = unplanned degradation = Incident."},
+    {s:"🔑 Okta MFA not working — locked out of all SSO apps",             t:"Incident",                          kb:"Auth system failure locking users out = critical Incident."},
+    {s:"🔌 Shared network drive disappeared for the whole team",           t:"Incident",                          kb:"Sudden storage loss for multiple users = Incident."},
+    {s:"💥 Database errors blocking all staff transactions",               t:"Incident",                          kb:"System-wide transaction failure = major Incident."},
+    {s:"🌐 GlobalProtect VPN disconnects every few minutes",               t:"Incident",                          kb:"Intermittent VPN drops = Incident even if connection returns."},
+    {s:"📧 Outlook calendar not syncing — meetings missing",               t:"Incident",                          kb:"Calendar sync failure = unplanned degradation = Incident."},
+    {s:"📡 Internet completely down across Building B",                    t:"Incident",                          kb:"Site-wide internet outage = major Incident."},
+    {s:"🖥️ Unable to Launch Citrix Desktop",                              t:"Incident",                          kb:"Citrix session failure = unplanned disruption = Incident."},
+    {s:"🔓 Unable to login to my machine",                                 t:"Incident",                          kb:"Workstation auth failure = unplanned disruption = Incident."},
+    {s:"📊 COB Tracker issues",                                            t:"Incident",                          kb:"Business-critical tracker not functioning = Incident."},
+    {s:"❌ Unable to access Decipher inside Citrix",                       t:"Incident",                          kb:"Application inaccessible in virtual desktop = Incident."},
+    // Generic Service Requests (6)
+    {s:"🗝️ Need access to an internal app NOT listed in the portal",       t:"Generic Service Request",           kb:"Non-catalogued access = GSR for IT to assess and provision."},
+    {s:"👥 Add a colleague to our existing AD security group",             t:"Generic Service Request",           kb:"AD group changes outside new-hire flows = GSR."},
+    {s:"📂 Need Read only access for the SharePoint folder",               t:"Generic Service Request",           kb:"SharePoint folder access not in the portal requires IT assessment — raise a GSR for manual provisioning."},
+    {s:"🔑 Access to a shared mailbox — not in the Service Catalog",       t:"Generic Service Request",           kb:"Unlisted mailbox access = GSR for manual provisioning."},
+    {s:"🔍 Requesting access to WIZ scanner reports",                      t:"Generic Service Request",           kb:"WIZ scanner report access is not a standard catalog item — raise a GSR for IT to assess and provision."},
+    {s:"💾 Request to increase Hard Disk space in Citrix",                 t:"Generic Service Request",           kb:"Citrix storage changes require IT assessment = GSR."},
+    // Service Catalog (5)
+    {s:"💿 Request Adobe Acrobat Pro via the Service Desk Portal",         t:"Service Catalog (Fulfillment Task)",kb:"Standard licensed software with automated portal workflow = Catalog."},
+    {s:"📦 Add a second monitor — available in the hardware catalog",      t:"Service Catalog (Fulfillment Task)",kb:"Pre-approved hardware in catalog = Catalog item."},
+    {s:"🔐 Request Audit Access for compliance review (via portal)",       t:"Service Catalog (Fulfillment Task)",kb:"Pre-approved audit access in portal = Catalog Fulfillment Task."},
+    {s:"📧 Request for External Distribution list (via porta)",            t:"Service Catalog (Fulfillment Task)",kb:"Distribution list = standard pre-approved catalog item."},
+    {s:"👤 Request Existing Role Based Access for New Hire (via porta)",   t:"Service Catalog (Fulfillment Task)",kb:"Role-based access for new hires = pre-approved catalog item."},
+  ];
+
+  const CORRECT_QUIPS = [
+    "🎓 Textbook! HR has been notified — favourably.",
+    "⚡ Correct! The IT gods have updated your permanent record.",
+    "🏆 Spot-on! Your ITIL certificate is practically printing itself.",
+    "💡 Precisely! The Service Desk is slow-clapping.",
+    "🌟 Outstanding! Your manager has been cc'd on this triumph.",
+    "🎯 Bullseye! The Change Advisory Board is genuinely moved.",
+    "🧠 Stellar recall! The CMDB has been ceremonially updated.",
+    "🥂 Magnificent! Your ITSM prowess is formally documented.",
+    "✨ Exceptional! The on-call engineer weeps tears of joy.",
+    "🎪 Superb! Even the SLA timer paused to applaud.",
+    "🚀 Correct! Proceed to the Service Desk hall of fame.",
+    "📜 Well played! This will be studied for generations.",
+  ];
+
+  const WRONG_TIPS = [
+    "❌ Respectfully, no. Even the office printer is disappointed.",
+    "🤔 A brief KB consultation is warranted, esteemed colleague.",
+    "📋 Incident? GSR? Catalog? This is not a lucky dip.",
+    "💡 Incidents break. GSRs request. Catalog = portal.",
+    "🧩 The Help Desk would like a word after class.",
+    "😬 That was bold. Confidently wrong is still wrong.",
+    "📎 The ITIL framework is watching. It is unimpressed.",
+    "🗃️ Your ticket would have been auto-rejected.",
+    "🤦 The on-call engineer received a sympathy notification.",
+    "🚨 Incorrect. Dignity levels: slightly reduced.",
+    "📉 The Change Board briefly lowered their expectations.",
+    "😅 Fascinating choice. Incorrect, but fascinating.",
+  ];
+
+  /* ── State ── */
+  const PER_TYPE = 2, TOTAL = 6;
+  let score = 0, streak = 0, totalCorrect = 0, totalWrong = 0;
+  let selectedIdx = null, matched = new Set(), bucketCounts = {};
+  let roundScenarios = [], usedByType = {}, userName = '', userEmail = '';
+
+  /* ═══════════════════════════════
+     USER FORM
+  ═══════════════════════════════ */
+  function submitUserForm() {
+    const nameVal  = document.getElementById('input-name').value.trim();
+    const emailVal = document.getElementById('input-email').value.trim();
+    const errDiv   = document.getElementById('email-error');
+
+    // Basic validation — reject missing or obviously bad emails
+    const emailOk = emailVal.length > 0 && emailVal.includes('@') && emailVal.includes('.');
+    if (!emailOk) {
+      errDiv.classList.add('visible');
+      document.getElementById('input-email').focus();
+      return;
+    }
+    errDiv.classList.remove('visible');
+
+    userName  = nameVal || 'Player';
+    userEmail = emailVal;
+
+    document.getElementById('welcome-name').textContent = userName.split(' ')[0];
+    hide('modal-user');
+    show('modal-welcome');
+  }
+
+  /* Allow Enter key on the user form */
+  document.getElementById('input-email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitUserForm();
+  });
+  document.getElementById('input-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitUserForm();
+  });
+
+  /* ═══════════════════════════════
+     SCENARIO PICKING
+  ═══════════════════════════════ */
+  function pickScenarios() {
+    const byType = {};
+    for (const type of Object.keys(TYPES)) {
+      byType[type] = ALL_SCENARIOS.filter(s => s.t === type);
+    }
+
+    // Exhaust each type's pool before repeating (per type)
+    const result = [];
+    for (const type of Object.keys(TYPES)) {
+      const pool = byType[type];
+      if (!usedByType[type] || usedByType[type].length >= pool.length) {
+        usedByType[type] = [];
+      }
+      // Shuffle remaining
+      const remaining = pool.filter((_, i) => !usedByType[type].includes(i));
+      const shuffled  = remaining.sort(() => Math.random() - 0.5);
+      const picks     = shuffled.slice(0, PER_TYPE);
+      picks.forEach(p => usedByType[type].push(pool.indexOf(p)));
+      result.push(...picks);
+    }
+    return result.sort(() => Math.random() - 0.5);
+  }
+
+  /* ═══════════════════════════════
+     START GAME
+  ═══════════════════════════════ */
+  function startGame() {
+    score = 0; streak = 0; totalCorrect = 0; totalWrong = 0;
+    selectedIdx = null; matched = new Set();
+    bucketCounts = { "Incident": 0, "Generic Service Request": 0, "Service Catalog (Fulfillment Task)": 0 };
+
+    roundScenarios = pickScenarios();
+
+    hide('modal-welcome');
+    hide('modal-end');
+    const app = document.getElementById('app');
+    app.classList.add('visible');
+
+    renderBoard();
+    updateHUD();
+    updateProgress();
+    clearFeedback();
+  }
+
+  /* ═══════════════════════════════
+     RENDER BOARD
+  ═══════════════════════════════ */
+  function renderBoard() {
+    const scenCol = document.getElementById('scenarios');
+    const typeCol = document.getElementById('types');
+    scenCol.innerHTML = '';
+    typeCol.innerHTML = '';
+
+    // Scenario cards
+    roundScenarios.forEach((sc, idx) => {
+      const div = document.createElement('div');
+      div.className = 'scenario-card';
+      div.id = `sc-${idx}`;
+      div.textContent = sc.s;
+      div.addEventListener('click', () => clickScenario(idx));
+      scenCol.appendChild(div);
+    });
+
+    // Bucket cards
+    const typeKeys = Object.keys(TYPES);
+    typeKeys.forEach(type => {
+      const T   = TYPES[type];
+      const cls = bucketClass(type);
+      const div = document.createElement('div');
+      div.className = `bucket-card ${cls}`;
+      div.id = `bucket-${typeSafe(type)}`;
+      div.innerHTML =
+        `<span class="bc-emoji">${T.emoji}</span>` +
+        `<span class="bc-name">${type}</span>` +
+        `<span class="bc-count" id="count-${typeSafe(type)}">0 matched</span>`;
+      div.addEventListener('click', () => clickBucket(type));
+      typeCol.appendChild(div);
+    });
+  }
+
+  /* ═══════════════════════════════
+     INTERACTION
+  ═══════════════════════════════ */
+  function clickScenario(idx) {
+    if (matched.has(idx)) return;
+
+    if (selectedIdx === idx) {
+      // Deselect
+      selectedIdx = null;
+      document.getElementById(`sc-${idx}`).classList.remove('selected');
+      return;
+    }
+    // Deselect previous
+    if (selectedIdx !== null) {
+      document.getElementById(`sc-${selectedIdx}`).classList.remove('selected');
+    }
+    selectedIdx = idx;
+    document.getElementById(`sc-${idx}`).classList.add('selected');
+    clearFeedback();
+  }
+
+  function clickBucket(type) {
+    if (selectedIdx === null) {
+      showFeedback('👆 Select a scenario first.', 'wrong');
+      return;
+    }
+    const sc = roundScenarios[selectedIdx];
+    if (sc.t === type) {
+      onCorrect(selectedIdx, type);
+    } else {
+      onWrong(selectedIdx, type);
+    }
+  }
+
+  /* ═══════════════════════════════
+     CORRECT ANSWER
+  ═══════════════════════════════ */
+  function onCorrect(idx, type) {
+    const T = TYPES[type];
+
+    // Score
+    const base    = 10;
+    const bonus   = streak * 2;
+    const gained  = base + bonus;
+    score         = Math.min(100, score + gained);
+    streak++;
+    totalCorrect++;
+
+    // Visual — colour the card to the type
+    const card = document.getElementById(`sc-${idx}`);
+    card.classList.remove('selected');
+    card.classList.add('matched');
+    card.style.background    = T.surf;
+    card.style.borderColor   = T.border;
+    card.style.color         = T.bright;
+    card.style.opacity       = '0.7';
+
+    matched.add(idx);
+    selectedIdx = null;
+
+    // Update bucket counter
+    bucketCounts[type]++;
+    const countEl = document.getElementById(`count-${typeSafe(type)}`);
+    if (countEl) countEl.textContent = `${bucketCounts[type]} matched`;
+
+    updateHUD();
+    updateProgress();
+
+    const quip = CORRECT_QUIPS[Math.floor(Math.random() * CORRECT_QUIPS.length)];
+    showFeedback(`${quip}  (+${gained} pts)`, 'correct');
+
+    if (matched.size === TOTAL) {
+      setTimeout(showEnd, 800);
+    }
+  }
+
+  /* ═══════════════════════════════
+     WRONG ANSWER
+  ═══════════════════════════════ */
+  function onWrong(idx, type) {
+    streak = 0;
+    totalWrong++;
+    updateHUD();
+
+    const card = document.getElementById(`sc-${idx}`);
+    card.classList.add('flash-red', 'shake');
+    setTimeout(() => card.classList.remove('flash-red', 'shake'), 400);
+
+    const tip = WRONG_TIPS[Math.floor(Math.random() * WRONG_TIPS.length)];
+    showFeedback(tip, 'wrong');
+  }
+
+  /* ═══════════════════════════════
+     HUD / PROGRESS
+  ═══════════════════════════════ */
+  function updateHUD() {
+    document.getElementById('hdr-score').textContent  = score;
+    document.getElementById('hdr-streak').textContent = streak;
+  }
+
+  function updateProgress() {
+    const pct = (matched.size / TOTAL) * 100;
+    document.getElementById('progress-fill').style.width = `${pct}%`;
+    document.getElementById('progress-count').textContent = `${matched.size} / ${TOTAL}`;
+  }
+
+  function showFeedback(msg, type) {
+    const fb = document.getElementById('feedback');
+    fb.innerHTML = `<div class="feedback-msg feedback-${type === 'correct' ? 'correct' : 'wrong'}">${msg}</div>`;
+  }
+
+  function clearFeedback() {
+    document.getElementById('feedback').innerHTML = '';
+  }
+
+  /* ═══════════════════════════════
+     END SCREEN
+  ═══════════════════════════════ */
+  function showEnd() {
+    const isPerfect = totalWrong === 0;
+    if (isPerfect) score = Math.min(100, score + 10);
+
+    // Score pill
+    document.getElementById('end-score-val').textContent = score;
+
+    // Grade
+    let gradeMsg;
+    if (score === 100)     gradeMsg = "🌟 PERFECT SCORE — Legendary Ticket Maestro status achieved!";
+    else if (score >= 80)  gradeMsg = "🥇 Excellent — Top Tier ITSM talent confirmed!";
+    else if (score >= 60)  gradeMsg = "🥈 Good effort — review the KB below for guidance.";
+    else                   gradeMsg = "🥉 Keep practising — the printer forgives you. Probably.";
+    document.getElementById('end-grade-msg').textContent = gradeMsg;
+
+    // Flawless notice
+    const flawlessEl = document.getElementById('end-flawless-msg');
+    flawlessEl.style.display = isPerfect ? 'block' : 'none';
+
+    // KB cards
+    const kbRow = document.getElementById('end-kb-cards');
+    kbRow.innerHTML = '';
+    Object.entries(TYPES).forEach(([type, T]) => {
+      const cls = kbCardClass(type);
+      const div = document.createElement('div');
+      div.className = `kb-card ${cls}`;
+      div.innerHTML =
+        `<div class="kbc-emoji">${T.emoji}</div>` +
+        `<div class="kbc-ref">${T.kbRef}</div>` +
+        `<div class="kbc-body">${escHtml(T.kbBody)}</div>` +
+        `<button class="btn-kb-view" onclick="showKB('${escAttr(type)}')">📖 View KB Article</button>`;
+      kbRow.appendChild(div);
+    });
+
+    // Scenario table
+    const tbody = document.getElementById('review-table-body');
+    tbody.innerHTML = '';
+    roundScenarios.forEach(sc => {
+      const tr  = document.createElement('tr');
+      const cls = rtClass(sc.t);
+      const badgeCls = rtBadgeClass(sc.t);
+      tr.className = cls;
+      tr.innerHTML =
+        `<td>${escHtml(sc.s)}</td>` +
+        `<td><span class="rt-type-badge ${badgeCls}">${escHtml(sc.t)}</span></td>` +
+        `<td class="rt-kb-text">${escHtml(sc.kb)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    hide('app');
+    show('modal-end');
+
+    saveResult(isPerfect);
+  }
+
+  /* ═══════════════════════════════
+     SAVE RESULT
+  ═══════════════════════════════ */
+  function saveResult(isPerfect) {
+    const noticeEl = document.getElementById('save-notice');
+    noticeEl.textContent = '';
+
+    fetch('/api/save-result', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:      userEmail,
+        name:       userName,
+        score:      score,
+        correct:    totalCorrect,
+        wrong:      totalWrong,
+        is_perfect: isPerfect ? 1 : 0,
+      }),
+    })
+    .then(r => {
+      if (r.ok) {
+        noticeEl.className = 'save-ok';
+        noticeEl.textContent = 'Results saved ✓';
+      } else {
+        throw new Error('Server error ' + r.status);
+      }
+    })
+    .catch(() => {
+      noticeEl.className = 'save-err';
+      noticeEl.textContent = 'Could not save results — check your connection.';
+    });
+  }
+
+  /* ═══════════════════════════════
+     KB MODAL
+  ═══════════════════════════════ */
+  function showKB(type) {
+    const T = TYPES[type];
+    if (!T) return;
+    document.getElementById('kb-article-ref').textContent  = T.kbRef + ' — ' + type;
+    document.getElementById('kb-article-body').textContent = T.kbBody;
+    show('modal-kb');
+  }
+
+  function closeKB() {
+    hide('modal-kb');
+  }
+
+  /* ═══════════════════════════════
+     RESTART
+  ═══════════════════════════════ */
+  function restartGame() {
+    hide('modal-end');
+    startGame();
+  }
+
+  /* ═══════════════════════════════
+     HELPERS
+  ═══════════════════════════════ */
+  function show(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+  }
+  function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  }
+  function typeSafe(t) {
+    return t.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+  }
+  function bucketClass(type) {
+    if (type === 'Incident')                          return 'bc-inc';
+    if (type === 'Generic Service Request')           return 'bc-gsr';
+    if (type === 'Service Catalog (Fulfillment Task)') return 'bc-cat';
+    return '';
+  }
+  function kbCardClass(type) {
+    if (type === 'Incident')                          return 'kbc-inc';
+    if (type === 'Generic Service Request')           return 'kbc-gsr';
+    if (type === 'Service Catalog (Fulfillment Task)') return 'kbc-cat';
+    return '';
+  }
+  function rtClass(type) {
+    if (type === 'Incident')                          return 'rt-inc';
+    if (type === 'Generic Service Request')           return 'rt-gsr';
+    if (type === 'Service Catalog (Fulfillment Task)') return 'rt-cat';
+    return '';
+  }
+  function rtBadgeClass(type) {
+    if (type === 'Incident')                          return 'inc';
+    if (type === 'Generic Service Request')           return 'gsr';
+    if (type === 'Service Catalog (Fulfillment Task)') return 'cat';
+    return '';
+  }
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function escAttr(str) {
+    return String(str).replace(/'/g, "\\'");
+  }
+  </script>
+</body>
+</html>

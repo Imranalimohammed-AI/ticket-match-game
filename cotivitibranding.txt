@@ -1,0 +1,145 @@
+Cotiviti Branding
+This skill is the source of truth for Cotiviti's visual and verbal identity. Use it any time output will represent Cotiviti — documents, decks, emails, reports, charts, designs — whether the user asked for "on-brand" content or not. If the user is creating something for Cotiviti, the Cotiviti brand applies.
+The skill provides:
+
+Color palette (primary, secondary, accent, neutral) with hex/RGB/CMYK/Pantone values
+Typography rules (Montserrat hierarchy, Arial fallback)
+Logo usage rules (clear space, minimum size, do's & don'ts)
+Editorial voice, tone, and writing standards from the Cotiviti Style Guide
+Graphics conventions (binary motif, icon style, data visualization)
+Co-branding rules for joint Cotiviti + Edifecs materials
+Bundled reference assets — logos, color palette PDF, brand cheat sheet — under assets/
+
+How to use this skill
+Read this SKILL.md first. It contains everything needed for routine work. For deeper questions (e.g., "What's the exact CMYK for our secondary aqua?", "Show me the data-viz rules in the brandbook"), open the matching file in references/. Bundled images and reference PDFs live under assets/ and can be embedded directly into deliverables.
+When the deliverable is a Word doc, deck, PDF, or spreadsheet, combine this skill with the corresponding output skill (docx, pptx, pdf, xlsx). This skill defines what the brand looks and sounds like; the output skill defines how to build the file. Both apply.
+Brand promise & positioning (use to frame copy)
+
+Who we are: Cotiviti is a leading solutions and analytics company that leverages unparalleled clinical and financial datasets to deliver deep insight into healthcare system performance.
+What we promise: "Reshaping the economics of healthcare and retail." We harness the power of perspective to enable better performance and eliminate waste.
+Three pillars: (1) Fluent in healthcare + retail data analytics, (2) Focused on performance excellence, (3) Harness the power of perspective to unlock unique value for our clients.
+
+Lean on this language when writing intros, executive summaries, or boilerplate. Don't invent alternative taglines.
+Color palette (quick reference)
+Always pull colors from this list. Never invent or sample replacements. Full CMYK/RGB/Pantone values are in references/colors.md.
+Primary — use liberally. Maintain balance across these four (purple, lavender, pink, white).
+NameHexNotesCotiviti Purple#31006FWorkhorse color. Headlines, logos, dark backgrounds.Cotiviti Lavender#9579D3Supporting color. Use freely alongside purple.Cotiviti Pink#EC008CAccent only — use sparingly to draw attention.Snow White#FFFFFFBackgrounds, reversed text on dark fills.
+Secondary tints — use in conjunction with primary when more variety is needed.
+NameHexLight Purple#7C77ADLight Violet#C2BFE0Light Pink#F49AC1
+Accent — restricted use. Internal materials, charts, infographics only. Don't use as a primary tone in external work.
+NameHexSky Blue#00AEEFSea Green#13D0CAGreen Grass#A3D55FMellow Yellow#ECE819Orangesicle#F98E2B
+Neutrals — support, not substitute. Black + four cool grays.
+NameHexBlack#000000Gray 1#747679Gray 2#939598Gray 3#CACAC8Gray 4#E6E7E8
+When building data viz: use primary colors first; if more swatches are needed, fall back to accent colors. Avoid drop shadows, 3D effects, and unnecessary gridlines. Striped patterns of two contrasting primaries are an acceptable extension when many series are needed.
+Typography
+Cotiviti's typeface is Montserrat. Use these three weights almost exclusively:
+
+Montserrat Bold — headlines (H1, H2, H3)
+Montserrat SemiBold — subheads, callouts
+Montserrat Regular — body copy, lead copy
+
+Fallback: Arial — only when Montserrat is not available (e.g., Outlook emails, some desktop apps). Never substitute another font for visual interest.
+Approximate web type scale (desktop / tablet / mobile, in px):
+
+H1: 56/62, 48/56, 36/42 — Montserrat Bold
+H2: 44/50, 37/45, 32/38 — Montserrat Bold
+H3: 32/40, 27/35, 24/30 — Montserrat Bold
+H4: 26/32, 24/30, 20/26 — Montserrat Bold
+Lead copy: 22/28, 20/26, 20/26 — Montserrat Regular
+Body copy: 16/24, 18/26, 18/26 — Montserrat Regular
+
+When generating PowerPoint or Word output, set the document theme font to Montserrat with Arial as fallback. When generating HTML, set font-family: "Montserrat", Arial, sans-serif;.
+Logo usage
+Do use the master "COTIVITI" wordmark from assets/logos/. Pick the variant that matches the background:
+
+logo_primary_purple.png/.svg — light backgrounds (default)
+logo_primary_white.png/.svg — dark/purple backgrounds (reversed)
+logo_all_black.png/.svg — monochrome print
+logo_all_white.png/.svg — monochrome reverse
+
+Clear space: The minimum padding around the logo equals the width of the "O" in the wordmark. Don't crowd it.
+Minimum size: 75 px wide on screen. Never go smaller.
+Aspect ratio: The bundled logo PNGs are 1000 × 126 px — an ~8:1 width-to-height ratio. When placing the logo in any output (PPTX, DOCX, HTML, PDF), always preserve this ratio. Calculate height as width / 7.94. Common correct sizes: 1.5" wide → 0.19" tall, 1.8" wide → 0.23" tall, 2.5" wide → 0.31" tall, 3" wide → 0.38" tall. Never eyeball the height — incorrect dimensions will visibly stretch or squash the wordmark.
+Don't:
+
+Change the colors of the wordmark.
+Fail to differentiate the secondary-colored "O" and "I" (this binary motif is core to the identity).
+Add drop shadows or other effects.
+Place over busy photos or backgrounds that clash with logo colors.
+Adjust letter spacing, recreate in another typeface, or break onto multiple lines.
+Place inside a containing box or add adjacent elements.
+Remove letters or use the logo as a "window" cropped to a photo.
+
+When in doubt, see references/logo_usage.md and the bundled assets/reference_pdfs/brand_cheat_sheet.pdf.
+Voice, tone, and writing rules
+Cotiviti's voice is confident, clear, and analytical — not breathless or salesy. Write for healthcare and retail executives who are time-poor and detail-oriented.
+Top rules — apply these every time:
+
+The company name is Cotiviti — never "Cotiviti Healthcare," "Cotiviti Technologies," or any other suffix.
+"healthcare" is one word, except inside proper nouns that split it (e.g., "National Health Care Anti-Fraud Association").
+Our clients are payers, not "payors."
+Plans in the Blue Cross and Blue Shield Association are Blue Plans, not "Blues plans."
+One space — not two — after a sentence-ending period.
+Use the serial (Oxford) comma: "payment accuracy, risk adjustment, and quality."
+Capitalize proper nouns only (including product names). Don't title-case general capabilities like "payment accuracy" mid-sentence.
+Use sentence case for headers, subheads, and descriptive document titles (white papers, case studies).
+Use title case for shorter, formal document titles (technical manuals, proposals).
+Reference the same client/product/system the same way throughout a document — consistency matters.
+Defer to Merriam-Webster online for spelling.
+
+Numbers, dates, symbols:
+
+Write out numbers zero through nine; use numerals for 10+. Always use numerals for percentages, dollar amounts, and data points.
+Standard date format: January 1, 2025 (no "1st" / "th").
+Standard time format: 3 pm ET or 8:30 am CT. Avoid EDT/EST — it confuses readers.
+Use % rather than "percent."
+Avoid & unless it's part of a proper noun (e.g., "Centers for Medicare & Medicaid Services").
+Avoid > and < outside of brief bulleted lists.
+
+Acronyms: On first reference, spell out the full term followed by the acronym in parentheses. Then use the acronym. Don't pile up internal acronyms (like PCOB) in client-facing content — a client may not know what they mean.
+Bullets: No terminal punctuation unless the bullet is a full sentence. Keep items parallel in structure (all start with the same part of speech). Brief lists can abbreviate more than prose would.
+Job titles: Lowercase unless directly preceding a name. "Jeff Robinson, director of marketing communications, hosted the meeting." vs. "Senior Vice President of Finance Jerron Green led the discussion."
+Client confidentiality: Don't reference a specific client by name unless the document was prepared for that client. In external materials describe them generically — e.g., "a large Medicare Advantage plan."
+AI-generated content: Per Cotiviti policy, any AI-generated copy must be thoroughly reviewed, edited, and fact-checked before publication. Treat AI output as a rough first draft, never a finished product. Flag this in any deliverable that included AI assistance.
+Copyright line — required on externally shared documents and decks:
+
+© 2025 Cotiviti, Inc. All rights reserved. All proprietary information shall remain the sole and exclusive property of Cotiviti, Inc.
+
+For deeper editorial guidance see references/voice_and_writing.md.
+Graphics, icons, and photography
+
+Icons are drawn at 4pt line weight, with rounded corners, on a strong horizontal/vertical grid. On white, icons are primary purple with pink accents. On colored backgrounds, single-color icons in white.
+The binary motif ("O" and "I" elements from the logo) is a signature graphic device. It can stand alone, accompany photography, or be used to frame data. Keep "I"s and "O"s roughly 1/3 to 1/2 the height of any photo subject and staggered in depth of field.
+Photography should feel real, candid, and human — not stock-clinical. Cotiviti's photography library is available under Cotiviti Essentials/Photos/ in the central brand drive (too large to bundle here).
+Data visualization: Simple shapes — circles, rectangles, lines — in primary palette. No drop shadows, no extra gridlines, no 3D. Use accent colors only when more than six swatches are needed.
+
+Co-branding with Edifecs
+When the deliverable is joint Cotiviti + Edifecs work, use the Cotiviti + Edifecs combo logo from assets/logos/cotiviti_edifecs_combo.svg/.png. Lead with Cotiviti's primary palette; Edifecs accent colors (Edifecs Orange #FF5C39, Sunshine Yellow #FDD26E, Sea Blue #00A0AE, Indigo #00416A, Plum #6E149D) may appear in supporting elements. Don't mix the two brands' primary purples in the same gradient. For full co-brand rules consult references/edifecs_cobranding.md.
+Official templates
+Cotiviti maintains official Microsoft Office templates for decks and documents. When building a .pptx or .docx, start from these whenever possible — they already contain correct fonts, colors, and master layouts:
+
+PowerPoint: PPTTemplate2026_Cotiviti.potx, plus preformatted layouts for agendas, charts, content layouts, flowcharts, maps, SmartArt (cycle, hierarchy, lists, matrix, process, relationship), and tables.
+Word: General, Horizontal, Agenda, Fax Cover Sheet, Stationery Cover Letter.
+
+These templates live in Cotiviti Essentials/Microsoft Office Templates/ in the central brand drive. If the user has not provided the template file, generate a deck/document that matches the brand standards in this skill (correct font, color, logo, and layout discipline) and note that the official template can be applied later for an exact match.
+Working with output-format skills
+When the task requires producing a file:
+
+For decks: invoke the pptx skill, then apply the rules here for fonts, color theme, logo placement, and copyright line.
+For Word docs: invoke the docx skill, then set Montserrat font, primary purple for headings, and the brand copyright line in the footer.
+For PDFs: invoke the pdf skill, applying typography and color rules above.
+For spreadsheets: invoke the xlsx skill, set header rows in Cotiviti Purple with white text, body in Montserrat (Arial fallback), and use primary colors for chart series.
+
+Quick brand checklist before delivering any file
+
+Logo present, correct variant for background, with clear space respected.
+Only Cotiviti palette colors used; pink reserved for emphasis.
+Montserrat throughout; Arial only if Montserrat is unavailable.
+Sentence case in headers/subheads; serial commas; "Cotiviti," "healthcare," "payers" spelled and used correctly.
+Copyright line on externally shared files.
+No client names in external materials.
+Data viz: simple shapes, no drop shadows, primary palette first.
+If co-branded with Edifecs, combo logo used and Edifecs palette appears only in supporting elements.
+
+If any item fails the check, fix before sharing.
+
